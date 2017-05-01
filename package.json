@@ -1,0 +1,26 @@
+{
+  "name": "EVE2DiscordAuth",
+  "version": "0.0.1",
+  "description": "Authenticates EVE Players with Discord and EVE, to allow them into servers and groups.",
+  "main": "server.js",
+  "keywords": [
+    "passport",
+    "discord",
+    "eve",
+    "eve-online",
+    "oauth2",
+    "authentication"
+  ],
+  "author": "Michael Karbowiak <karbowiak@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "express": "^4.15.2",
+    "express-session": "^1.15.2",
+    "neow": "^1.0.0",
+    "passport": "^0.3.2",
+    "passport-discord": "^0.1.2",
+    "passport-eveonline": "^0.1.1",
+    "request": "^2.81.0"
+  }
+}
