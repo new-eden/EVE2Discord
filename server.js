@@ -1,4 +1,4 @@
-var express =               require("express"),
+let express =               require("express"),
     session =               require("express-session"),
     passport =              require("passport"),
     DiscordStrategy =       require("passport-discord"),
@@ -16,7 +16,7 @@ passport.deserializeUser(function(obj, done) {
   done(null, obj);
 });
 
-var discordScopes = ["identify", "email", "guilds.join"];
+let discordScopes = ["identify", "email", "guilds.join"];
 
 passport.use(new DiscordStrategy({
   clientID: config.discordClientID,
@@ -51,7 +51,7 @@ app.get("/", passport.authenticate("discord", {scope: discordScopes}), function 
 app.get("/auth/discord", passport.authenticate("discord", { failureRedirect: "/fail"}), function (req, res) {
   // Join user to guild..
   console.log("Joining user to guild..");
-  var authorizationToken = "Bearer " + req.authInfo;
+  let authorizationToken = "Bearer " + req.authInfo;
   request({
     headers: {
       "Authorization": authorizationToken,
@@ -64,7 +64,7 @@ app.get("/auth/discord", passport.authenticate("discord", { failureRedirect: "/f
       res.redirect("/error");
     }
     else {
-      let options = {maxAge: 1000 * 60, httpOnly: false, signed: false};
+      let options = {maxAge: 1000 * 60 * 15, httpOnly: false, signed: false};
       res.cookie("did", req.user.id, options);
       res.redirect("/eve");
     }
@@ -73,15 +73,15 @@ app.get("/auth/discord", passport.authenticate("discord", { failureRedirect: "/f
 app.get("/eve", passport.authenticate("eveonline"));
 app.get('/auth/eve', passport.authenticate('eveonline', { failureRedirect: '/error' }), function (req, res) {
   // Get user information from CCPs API server (the characterAffiliate endpoint)
-  var characterID = req.user.CharacterID;
-  var client = new neow.EveClient({
+  let characterID = req.user.CharacterID;
+  let client = new neow.EveClient({
     ids: characterID
   });
   client.fetch("eve:CharacterAffiliation").then(function(result) {
-    var allianceID = result.characters[characterID].allianceID;
-    var discordID = req.cookies.did;
+    let corporationID = result.characters[characterID].corporationID;
+    let discordID = req.cookies.did;
     // If user is in allowed alliance, add user to alliance group
-    if(allianceID == config.allianceID) {
+    if(corporationID == config.corporationID) {
       // Now to post to the Discord API using the bot token, to add user to group......
       request({
         headers: {
@@ -96,6 +96,7 @@ app.get('/auth/eve', passport.authenticate('eveonline', { failureRedirect: '/err
         }
         else {
           console.log(result.characters[characterID].characterName + " is now authed and can use discord");
+          addUserToSQLite(result.characters[characterID].characterName, characterID, discordID, config.roleID, config.guildID);
           res.json({"success": "you can now use discord like a boss.."});
         }
       });
@@ -114,3 +115,20 @@ app.listen(config.listenPort, config.listenIP, function (err) {
   if(err) return console.log(err);
   console.log("Listening at " + config.listenIP + " on port " + config.listenPort);
 });
+
+function addUserToSQLite(characterName, characterID, discordID, roleID, guildID) {
+  let sqlite3 = require("sqlite3").verbose();
+  let db = new sqlite3.Database("./database.sqlite");
+
+  db.serialize(function () {
+    db.run("CREATE TABLE users (characterName STRING, characterID int, discordID int, roleID int, guildID int)");
+    let stmt = db.prepare("INSERT INTO users VALUES (?, ?, ?, ?, ?)");
+    stmt.run(characterName, characterID, discordID, roleID, guildID);
+    stmt.finalize();
+
+    db.each("SELECT * FROM users WHERE characterID = " + characterID, function (err, row) {
+      console.log(row);
+    });
+  });
+  db.close();
+}
