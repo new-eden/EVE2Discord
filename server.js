@@ -121,15 +121,21 @@ function addUserToSQLite(characterName, characterID, discordID, roleID, guildID)
   let sqlite3 = require("sqlite3").verbose();
   let db = new sqlite3.Database("./database.sqlite");
 
+  // Check if the table exists
   db.serialize(function () {
-    db.run("CREATE TABLE users (characterName STRING, characterID int, discordID int, roleID int, guildID int)");
-    let stmt = db.prepare("INSERT INTO users VALUES (?, ?, ?, ?, ?)");
-    stmt.run(characterName, characterID, discordID, roleID, guildID);
-    stmt.finalize();
+    db.run("CREATE TABLE IF NOT EXISTS users (characterName STRING, characterID int, discordID int, roleID int, guildID int)");
+    db.run("CREATE UNIQUE INDEX IF NOT EXISTS user ON users(characterName)");
+    try {
+      let stmt = db.prepare("REPLACE INTO users VALUES (?, ?, ?, ?, ?)");
+      stmt.run(characterName, characterID, discordID, roleID, guildID);
+      stmt.finalize();
 
-    db.each("SELECT * FROM users WHERE characterID = " + characterID, function (err, row) {
-      console.log(row);
-    });
+      db.each("SELECT * FROM users WHERE characterID = " + characterID, function (err, row) {
+        console.log(row);
+      });
+    } catch(err) {
+      console.log(err);
+    }
   });
   db.close();
 }
