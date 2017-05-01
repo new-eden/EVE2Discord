@@ -5,7 +5,8 @@ let express =               require("express"),
     EVEStrategy =           require("passport-eveonline"),
     request =               require("request"),
     neow =                  require("neow"),
-    cookieParser =          require('cookie-parser'),
+    cookieParser =          require("cookie-parser"),
+    unixtime =              require("unix-timestamp"),
     app =                   express(),
     config =                require("./config.json");
 
@@ -123,11 +124,11 @@ function addUserToSQLite(characterName, characterID, discordID, roleID, guildID)
 
   // Check if the table exists
   db.serialize(function () {
-    db.run("CREATE TABLE IF NOT EXISTS users (characterName STRING, characterID int, discordID int, roleID int, guildID int)");
+    db.run("CREATE TABLE IF NOT EXISTS users (characterName STRING, characterID int, discordID int, roleID int, guildID int, lastChecked INT)");
     db.run("CREATE UNIQUE INDEX IF NOT EXISTS user ON users(characterName)");
     try {
-      let stmt = db.prepare("REPLACE INTO users VALUES (?, ?, ?, ?, ?)");
-      stmt.run(characterName, characterID, discordID, roleID, guildID);
+      let stmt = db.prepare("REPLACE INTO users VALUES (?, ?, ?, ?, ?, ?)");
+      stmt.run(characterName, characterID, discordID, roleID, guildID, unixtime.now(0));
       stmt.finalize();
 
       db.each("SELECT * FROM users WHERE characterID = " + characterID, function (err, row) {
