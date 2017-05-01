@@ -81,7 +81,7 @@ app.get('/auth/eve', passport.authenticate('eveonline', { failureRedirect: '/err
     var allianceID = result.characters[characterID].allianceID;
     var discordID = req.cookies.did;
     // If user is in allowed alliance, add user to alliance group
-    if(allianceID == 99005805) {
+    if(allianceID == config.allianceID) {
       // Now to post to the Discord API using the bot token, to add user to group......
       request({
         headers: {
