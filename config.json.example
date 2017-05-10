@@ -1,17 +1,20 @@
 {
   "discordClientID": "",
   "discordSecret": "",
-  "discordCallBack": "http://127.0.0.1:5000/auth/discord",
+  "discordCallBack": "https://127.0.0.1/auth/discord",
   "eveClientID": "",
   "eveSecret": "",
-  "eveCallBack": "http://127.0.0.1:5000/auth/eve",
-  "sessionSecret": "1234",
-  "discordInviteID": "3G6MaAT",
+  "eveCallBack": "https://127.0.0.1/auth/eve",
+  "sessionSecret": "",
+  "discordInviteID": "",
   "discordBotToken": "",
-  "allianceID": 99005805,
+  "allianceID": null,
   "corporationID": null,
-  "guildID": 308391532241616896,
-  "roleID": 308391687292715020,
+  "guildID": "",
+  "roleID": "",
   "listenIP": "127.0.0.1",
-  "listenPort": 5000
+  "listenPort": 5001,
+  "tickers": {
+    "4M-CORP": "4M"
+  }
 }
