@@ -1,7 +1,7 @@
 const cron      = require("node-cron"),
       deasync   = require("deasync"),
       request   = require("request"),
-      neow      = require("neow"),
+      esi      = require("eve-swagger"),
       time      = require("moment"),
       sqlite3   = require("sqlite3"),
       db        = new sqlite3.Database("./database.sqlite"),
@@ -24,36 +24,30 @@ cron.schedule("0 * * * *", function () {
       if(currentTime > (lastChecked + 3600)) {
         console.log("Rechecking " + characterName);
 
-        let client = new neow.EveClient({
-          ids: characterID
-        });
-
-        client.fetch("eve:CharacterAffiliation").then(function (result) {
-          let data = result.characters[characterID];
-          let currentCorporation = data.corporationID;
-          let currentAlliance = data.allianceID;
+        esi.characters(characterID).info().then(function (result) {
+	  console.log(result);
+          let currentCorporation = result.corporation_id;
+          let currentAlliance = result.alliance_id;
 
           if(currentCorporation != corporationID) {
             console.log(characterName + " is no longer in the same corporation");
-            request({
-              headers: {
-                "Authorization": "Bot " + config.discordBotToken,
-                "User-Agent": "EVE Discord Authenticator"
-              },
-              uri: "https://discordapp.com/api/guilds/" + guildID + "/members/" + discordID + "/roles/" + roleID,
-              method: "DELETE"
-            });
-            request({
-              headers: {
-                "Authorization": "Bot " + config.discordBotToken,
-                "User-Agent": "EVE Discord Authenticator"
-              },
-              uri: "https://discordapp.com/api/guilds/" + guildID + "/members/" + discordID,
-              json: {"nick": characterName},
-              method: "PATCH"
-            });
+            //update ticker
+            esi.corporations(corporationID).info().then(function (result2) {
+	      request({
+	        headers: {
+	          "Authorization": "Bot " + config.discordBotToken,
+	          "User-Agent": "EVE Discord Authenticator"
+	        },
+	        uri: "https://discordapp.com/api/guilds/" + guildID + "/members/" + discordID,
+		json: {"nick": "[" + result2.ticker + "] " + characterName},
+	        method: "PATCH"
+	      });
+	    });
+          }
+          if (config.corporationIDs.includes(currentCorporation) || config.allianceIDs.includes(currentAlliance)) {
+            console.log("User is in the coalition so no memebership change has to be done.");
             updateLastChecked(characterID);
-          } else if(currentAlliance != allianceID) {
+          } else {
             console.log(characterName + " is no longer in the same alliance");
             request({
               headers: {
@@ -63,18 +57,6 @@ cron.schedule("0 * * * *", function () {
               uri: "https://discordapp.com/api/guilds/" + guildID + "/members/" + discordID + "/roles/" + roleID,
               method: "DELETE"
             });
-            request({
-              headers: {
-                "Authorization": "Bot " + config.discordBotToken,
-                "User-Agent": "EVE Discord Authenticator"
-              },
-              uri: "https://discordapp.com/api/guilds/" + guildID + "/members/" + discordID,
-              json: {"nick": characterName},
-              method: "PATCH"
-            });
-            updateLastChecked(characterID);
-          } else {
-            console.log("User is in the same corporation/alliance so nothing has to be done.");
             updateLastChecked(characterID);
           }
         });
