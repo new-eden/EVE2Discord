@@ -8,13 +8,16 @@
   "sessionSecret": "",
   "discordInviteID": "",
   "discordBotToken": "",
-  "allianceID": null,
-  "corporationID": null,
+  "allianceIDs": [
+	null,
+	null
+  ],
+  "corporationIDs": [
+	null,
+	null
+  ]
   "guildID": "",
   "roleID": "",
   "listenIP": "127.0.0.1",
-  "listenPort": 5001,
-  "tickers": {
-    "4M-CORP": "4M"
-  }
+  "listenPort": 5001
 }
