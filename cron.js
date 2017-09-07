@@ -32,7 +32,7 @@ cron.schedule("0 * * * *", function () {
           if(currentCorporation != corporationID) {
             console.log(characterName + " is no longer in the same corporation");
             //update ticker
-            esi.corporations(corporationID).info().then(function (result2) {
+            esi.corporations(currentCorporation).info().then(function (result2) {
 	      request({
 	        headers: {
 	          "Authorization": "Bot " + config.discordBotToken,
